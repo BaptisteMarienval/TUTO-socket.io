@@ -7,13 +7,24 @@
       form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
       form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
       form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
-      #messages { list-style-type: none; margin: 0; padding: 0; }
-      #messages li { padding: 5px 10px; }
-      #messages li:nth-child(odd) { background: #eee; }
+
 </style>
   </head>
   <body>
+    <table border width=100% HEIGHT=100%>
+      <tr>
+        <td width=90% VALIGN="top">
+    <div>
     <ul id="chat"></ul>
+    </div>
+  </td>
+  <td VALIGN="top">
+    <div>
+    <ul id="usersRoom"></ul>
+  </div>
+</td>
+</tr>
+</table>
     <form action="">
       <input id="m" autocomplete="off" /><button>Send</button>
     </form>
@@ -21,21 +32,12 @@
 <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
 <script>
 
+var usersRoom = "Hello <br> World";
+
  // On demande le pseudo de l'utilisateur
   var pseudo = prompt('Votre pseudo ?') || 'Utilisateur';
-
-  var socket = io();
+  var socket = io('http://10.35.10.113:3000');
   socket.emit('newUser', pseudo);
-
-// On crée l'événement recupererMessages pour récupérer direcement les messages sur serveur
-  socket.on('recupererMessages', function (messages) {
-  // messages est le tableau contenant tous les messages qui ont été écris sur le serveur
-  var html = '';
-  for (var i = 0; i < messages.length; i++)
-    html += '<div class="line"><b>'+messages[i].pseudo+'</b> : '+messages[i].message+'</div>';
-  document.getElementById('chat').innerHTML = html;
-  });
-
 
 $('form').submit(function(){
 
@@ -50,27 +52,29 @@ $('form').submit(function(){
     // On vide le formulaire
      $('#m').val('');
     // On retourne false pour ne pas que le formulaire n'actualise la page
-    return false;  
+    return false;
 });
 
   socket.on('recupererNouveauMessage', function(message){
     document.getElementById('chat').innerHTML += '<div class="line"><b>'+message.pseudo+'</b> : '+message.message+'</div>';
-
   });
 
   socket.on('newUser', function(pseudo){
-
- document.getElementById('chat').innerHTML += '<div class="line"><b>'+pseudo+' est entre dans le salon.</b></div>';  
-
+ document.getElementById('chat').innerHTML += '<div class="line"><b>'+pseudo+' est entré dans le salon.</b></div>';
 });
 
-  socket.on('disconnect', function(){
- document.getElementById('chat').innerHTML += '<div class="line"><b>Un utilisateur est sorti dans le salon.</b></div>';  
-  });
+socket.on('delUser', function(pseudo){
+document.getElementById('chat').innerHTML += '<div class="line"><b>'+pseudo+' est sorti dans le salon.</b></div>';
+});
+
+socket.on('updateUsersList', function(users){
+
+    document.getElementById('usersRoom').innerHTML = '';
+    for(var i = 0; i < users.length; i++) {
+          document.getElementById('usersRoom').innerHTML += '<b>'+users[i]+'</b><br>';
+    }
+});
+
 </script>
-
-
-
   </body>
 </html>
-
